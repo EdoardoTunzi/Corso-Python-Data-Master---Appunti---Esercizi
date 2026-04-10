@@ -138,3 +138,27 @@ Esempio I/O:
 ○ Input: 13
 ○ Output: [(13, 1)]
 """
+
+
+def prime_factors(num):
+    n = num
+    d = 2
+    factors = {}
+
+    while n > 1:
+        count = 0
+
+        while n % d == 0:
+            n = n // d
+            count += 1
+        if count > 0:
+            factors[d] = count
+
+        d += 1
+
+    result = [(k, v) for k, v in factors.items()]
+
+    return result
+
+
+print(prime_factors(60))
