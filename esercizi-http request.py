@@ -1,3 +1,236 @@
+# %%
+import requests
+import math
+from requests.exceptions import HTTPError
+
+# ========================================
+# 🧠 ESERCIZI PYTHON – requests (1–10)
+# Focus: HTTP GET, JSON, params, error handling, logica
+# Difficoltà: crescente
+# ========================================
+
+
+# ========================================
+# 1️⃣ GET base
+# ========================================
+# Traccia:
+# Fai una richiesta GET a:
+# https://jsonplaceholder.typicode.com/posts/1
+# Stampa il titolo del post.
+#
+resp = requests.get("https://jsonplaceholder.typicode.com/posts/1")
+data = resp.json()
+
+# print(data["title"])
+
+
+# Obiettivo:
+# - Familiarizzare con requests.get()
+# - Convertire risposta in JSON
+# - Accedere a una chiave del dizionario
+
+
+# ========================================
+# 2️⃣ Lista di dati
+# ========================================
+# Traccia:
+# Fai una GET a:
+# https://jsonplaceholder.typicode.com/users
+# Stampa solo i nomi degli utenti.
+#
+# Obiettivo:
+# - Iterare su lista di dizionari
+# - Estrarre un campo specifico
+
+resp2 = requests.get("https://jsonplaceholder.typicode.com/users")
+data2 = resp2.json()
+usersNames = [user["name"] for user in data2]
+# print(usersNames)
+
+# ========================================
+# 4️⃣ Parametri query
+# ========================================
+# Traccia:
+# Fai una GET a:
+# https://jsonplaceholder.typicode.com/comments
+# Filtra solo i commenti con postId = 1 usando params.
+#
+# Obiettivo:
+# - Usare parametro params={}
+# - Non filtrare lato Python ma via URL
+parametri = {"postId": 1}
+resp3 = requests.get("https://jsonplaceholder.typicode.com/comments", params=parametri)
+data3 = resp3.json()
+# print(data3)
+
+
+# ========================================
+# 5️⃣ Controllo status code
+# ========================================
+# Traccia:
+# Fai una richiesta a un endpoint valido e uno non valido.
+# Gestisci il caso di errore stampando:
+# "Errore nella richiesta"
+#
+# Obiettivo:
+# - Usare response.status_code
+# - Capire differenza tra 200 e errori
+for url in ["https://www.theguardian.com", "https://repubblica.it/doesNotExist"]:
+    try:
+        response = requests.get(url)
+
+        if response.status_code == 200:
+            print("Successo")
+        else:
+            response.raise_for_status()
+
+    except requests.exceptions.RequestException as err:
+        print(f"Errore nella richiesta: {err}")
+
+
+# ========================================
+# 6️⃣ Funzione riutilizzabile
+# ========================================
+# Traccia:
+# Crea una funzione:
+# get_json(url)
+# che ritorna il JSON della risposta.
+#
+# Se la richiesta fallisce:
+# ritorna None.
+#
+# Obiettivo:
+# - Incapsulare requests
+# - Gestire errori base
+def get_json(url):
+    try:
+        resp = requests.get(url, timeout=5)
+        resp.raise_for_status()
+        data = resp.json()
+        return data
+    except requests.exceptions.RequestException:
+        return None
+
+
+# ========================================
+# 9️⃣ Costruzione URL dinamico
+# ========================================
+# Traccia:
+# Crea una funzione:
+# get_user_posts(user_id)
+#
+# Che chiama:
+# https://jsonplaceholder.typicode.com/posts?userId=X
+#
+# E ritorna i titoli dei post.
+#
+# Obiettivo:
+# - Usare f-string o params
+# - Creare funzioni dinamiche
+def get_user_posts(user_id):
+    params2 = {"userId": user_id}
+    resp = requests.get("https://jsonplaceholder.typicode.com/posts", params=params2)
+    # resp = requests.get(f"https://jsonplaceholder.typicode.com/posts?userId={user_id}")
+    data = resp.json()
+    postTitleList = [post["title"] for post in data]
+    return postTitleList
+
+
+print(get_user_posts(10))
+
+
+# ========================================
+# 🔟 🔥 HARD – Aggregazione dati API
+# ========================================
+# Traccia:
+# Usa:
+# https://jsonplaceholder.typicode.com/users
+# https://jsonplaceholder.typicode.com/posts
+#
+# Crea un dizionario:
+# {
+#   "NomeUtente": numero_post
+# }
+#
+# Obiettivo:
+# - Fare 2 chiamate API
+# - Collegare dati (userId)
+# - Usare dizionari e cicli
+#
+# Hint:
+# - users → id, name
+# - posts → userId
+def postNumberPerUserById(userId):
+    dizionario = {}
+
+    response1 = requests.get("https://jsonplaceholder.typicode.com/users")
+    userData = response1.json()
+    user = [user for user in userData if user["id"] == userId]
+
+    response2 = requests.get(
+        f"https://jsonplaceholder.typicode.com/posts?userId={userId}"
+    )
+    postsData = response2.json()
+
+    dizionario[user[0]["name"]] = len(postsData)
+
+    return dizionario
+
+
+print(postNumberPerUserById(10))
+
+# ========================================
+# BONUS 🔥🔥 (facoltativo)
+# ========================================
+# Traccia:
+# Trova l'utente con più post
+#
+# Output:
+# "L'utente con più post è X con Y post"
+#
+# Obiettivo:
+# - max()
+# - logica aggregazione
+
+
+def userWithMostPosts():
+
+    response1 = requests.get("https://jsonplaceholder.typicode.com/users")
+    userData = response1.json()
+
+    response2 = requests.get(f"https://jsonplaceholder.typicode.com/posts")
+    postsData = response2.json()
+
+    counts = {}
+    for post in postsData:
+        userId = post["userId"]
+        if userId in counts:
+            counts[userId] += 1
+        else:
+            counts[userId] = 1
+
+    maxPosts = -1
+    bestUserId = None
+
+    for userId, count in counts.items():
+        if count > maxPosts:
+            maxPosts = count
+            bestUserId = userId
+
+    bestUserName = ""
+    for user in userData:
+        if user["id"] == bestUserId:
+            bestUserName = user["name"]
+            break
+
+    print(f"L'utente con più post è {bestUserName} con {maxPosts} post")
+
+
+userWithMostPosts()
+
+
+# %%
+
 """
 ========================================
 🧠 Esercizio 1: Il Filtro "Smart" per API
@@ -28,8 +261,6 @@ Output:
  ...]
 (solo i titoli dei task completati)
 """
-
-import requests
 
 
 def filtra_todo(completata=None):
@@ -165,7 +396,6 @@ IP2: "1.1.1.1"
 Output:
 "La distanza stimata tra gli IP è di 8540.2 km"
 """
-import math
 
 
 def get_location(ip):
