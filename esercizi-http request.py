@@ -33,24 +33,16 @@ import requests
 
 
 def filtra_todo(completata=None):
-    """
-    TODO:
-    - Fai una GET a:
-      https://jsonplaceholder.typicode.com/todos
-    - Converti in JSON
-    - Filtra in base a 'completed'
-    - Ritorna lista di titoli
-    """
 
     url = "https://jsonplaceholder.typicode.com/todos"
 
-    # TODO: richiesta GET
+    # richiesta GET
     response = requests.get(url)
 
-    # TODO: converti JSON
+    # converti JSON
     data = response.json()
 
-    # TODO: filtra dati
+    # filtra dati
     if completata is None:
         risultati = [item["title"] for item in data]
         return risultati
@@ -110,20 +102,20 @@ def traduttore_cli():
     while True:
         parola = input("Inserisci parola (o 'esci'): ")
 
-        # TODO: gestisci uscita
+        # gestisci uscita
         if parola == "esci":
             break
 
-        # TODO: crea params
+        # crea params
         params = {"q": parola, "langpair": "it|en"}
 
-        # TODO: GET request
+        # GET request
         response = requests.get(base_url, params=params)
 
-        # TODO: JSON parsing
+        # JSON parsing
         data = response.json()
 
-        # TODO: estrai traduzione
+        # estrai traduzione
         traduzione = data["responseData"]["translatedText"]
 
         print("Traduzione:", traduzione)
